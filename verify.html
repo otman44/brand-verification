@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Product Verification</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f4f6f8;
+            padding: 20px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 430px;
+            background: white;
+            border-radius: 20px;
+            padding: 35px 25px;
+            text-align: center;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.10);
+        }
+
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: #e8f8ee;
+            color: #16a34a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        h1 {
+            font-size: 25px;
+            margin-bottom: 10px;
+            color: #111827;
+        }
+
+        p {
+            color: #6b7280;
+            margin-bottom: 25px;
+        }
+
+        .code {
+            background: #f3f4f6;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            word-break: break-all;
+            color: #111827;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 12px;
+            background: #ecfdf5;
+            color: #15803d;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+
+        <div class="icon">✓</div>
+
+        <h1>Product Verification</h1>
+
+        <p>
+            This QR code has been successfully scanned.
+        </p>
+
+        <div class="code" id="code">
+            Loading...
+        </div>
+
+        <div class="status">
+            Verification code detected
+        </div>
+
+    </div>
+
+    <script>
+
+        const params = new URLSearchParams(window.location.search);
+
+        const code = params.get("code");
+
+        const codeElement = document.getElementById("code");
+
+        if (code) {
+
+            codeElement.textContent = code;
+
+        } else {
+
+            codeElement.textContent = "No code found";
+
+        }
+
+    </script>
+
+</body>
+</html>

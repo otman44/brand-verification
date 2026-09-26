@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Brand Security — QR Manager</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,Tahoma,sans-serif;
+    background:#f4f6f8;
+    color:#17202a;
+}
+
+header{
+    background:#111827;
+    color:white;
+    padding:18px 25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:sticky;
+    top:0;
+    z-index:100;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.logo-icon{
+    width:42px;
+    height:42px;
+    background:#d4af37;
+    color:#111;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    font-weight:bold;
+}
+
+.logo h1{
+    font-size:20px;
+}
+
+.logo span{
+    display:block;
+    font-size:12px;
+    color:#cbd5e1;
+    margin-top:3px;
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
+    padding:25px;
+}
+
+.dashboard{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+    margin-bottom:25px;
+}
+
+.stat{
+    background:white;
+    border-radius:16px;
+    padding:20px;
+    box-shadow:0 5px 20px rgba(0,0,0,.05);
+}
+
+.stat-title{
+    color:#64748b;
+    font-size:14px;
+    margin-bottom:10px;
+}
+
+.stat-number{
+    font-size:30px;
+    font-weight:bold;
+}
+
+.gold{
+    color:#b58b00;
+}
+
+.green{
+    color:#16803c;
+}
+
+.red{
+    color:#c62828;
+}
+
+.layout{
+    display:grid;
+    grid-template-columns:360px 1fr;
+    gap:20px;
+}
+
+.card{
+    background:white;
+    border-radius:18px;
+    padding:22px;
+    box-shadow:0 5px 20px rgba(0,0,0,.05);
+}
+
+.card h2{
+    font-size:18px;
+    margin-bottom:18px;
+}
+
+label{
+    display:block;
+    margin-bottom:7px;
+    font-size:13px;
+    font-weight:bold;
+    color:#475569;
+}
+
+input,select{
+    width:100%;
+    border:1px solid #dbe1e8;
+    padding:12px 13px;
+    border-radius:10px;
+    margin-bottom:14px;
+    outline:none;
+    font-size:14px;
+    background:#fff;
+}
+
+input:focus,select:focus{
+    border-color:#d4af37;
+    box-shadow:0 0 0 3px rgba(212,175,55,.12);
+}
+
+button{
+    border:none;
+    cursor:pointer;
+    border-radius:10px;
+    padding:11px 15px;
+    font-weight:bold;
+    transition:.2s;
+}
+
+button:hover{
+    transform:translateY(-1px);
+}
+
+.primary{
+    width:100%;
+    background:#111827;
+    color:white;
+    padding:14px;
+}
+
+.primary:hover{
+    background:#1f2937;
+}
+
+.gold-btn{
+    background:#d4af37;
+    color:#111;
+}
+
+.danger{
+    background:#fee2e2;
+    color:#b91c1c;
+}
+
+.secondary{
+    background:#e2e8f0;
+    color:#1e293b;
+}
+
+.toolbar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+}
+
+.toolbar input{
+    flex:1;
+    min-width:200px;
+    margin:0;
+}
+
+.table-wrapper{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:800px;
+}
+
+th{
+    background:#f8fafc;
+    color:#64748b;
+    font-size:12px;
+    text-align:right;
+    padding:13px;
+}
+
+td{
+    padding:13px;
+    border-top:1px solid #eef2f5;
+    font-size:13px;
+}
+
+.code{
+    font-family:monospace;
+    background:#f1f5f9;
+    padding:6px 8px;
+    border-radius:7px;
+    direction:ltr;
+    display:inline-block;
+}
+
+.badge{
+    padding:5px 9px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.badge-unused{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.badge-used{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.actions{
+    display:flex;
+    gap:5px;
+    flex-wrap:wrap;
+}
+
+.actions button{
+    padding:7px 9px;
+    font-size:11px;
+}
+
+.empty{
+    text-align:center;
+    padding:50px;
+    color:#94a3b8;
+}
+
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+}
+
+.modal-box{
+    background:white;
+    width:min(420px,92%);
+    border-radius:20px;
+    padding:25px;
+    text-align:center;
+}
+
+#qrContainer{
+    display:flex;
+    justify-content:center;
+    margin:20px 0;
+}
+
+.qr-info{
+    background:#f8fafc;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:15px;
+    font-size:13px;
+}
+
+.close{
+    width:100%;
+    background:#e2e8f0;
+}
+
+.toast{
+    position:fixed;
+    bottom:25px;
+    left:25px;
+    background:#111827;
+    color:white;
+    padding:13px 18px;
+    border-radius:10px;
+    display:none;
+    z-index:2000;
+}
+
+@media(max-width:900px){
+    .dashboard{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .layout{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:550px){
+    header{
+        padding:14px;
+    }
+
+    .container{
+        padding:14px;
+    }
+
+    .dashboard{
+        grid-template-columns:1fr 1fr;
+        gap:10px;
+    }
+
+    .stat{
+        padding:15px;
+    }
+
+    .stat-number{
+        font-size:24px;
+    }
+
+    .logo h1{
+        font-size:16px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">
+        <div class="logo-icon">✓</div>
+        <div>
+            <h1>Brand Security</h1>
+            <span>QR & Product Verification</span>
+        </div>
+    </div>
+
+    <button class="gold-btn" onclick="exportCSV()">
+        تصدير CSV
+    </button>
+
+</header>
+
+
+<div class="container">
+
+    <!-- STATISTICS -->
+
+    <div class="dashboard">
+
+        <div class="stat">
+            <div class="stat-title">إجمالي الأكواد</div>
+            <div class="stat-number gold" id="totalCodes">0</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-title">أكواد غير مستعملة</div>
+            <div class="stat-number green" id="unusedCodes">0</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-title">أكواد مستعملة</div>
+            <div class="stat-number red" id="usedCodes">0</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-title">نسبة الاستعمال</div>
+            <div class="stat-number" id="usageRate">0%</div>
+        </div>
+
+    </div>
+
+
+    <div class="layout">
+
+        <!-- ADD PRODUCT -->
+
+        <div class="card">
+
+            <h2>➕ إنشاء أكواد جديدة</h2>
+
+            <label>اسم الـ Brand</label>
+            <input
+                id="brandName"
+                placeholder="مثال: NouriCOS"
+            >
+
+            <label>اسم المنتج</label>
+            <input
+                id="productName"
+                placeholder="مثال: Face Cream"
+            >
+
+            <label>رقم / Reference المنتج</label>
+            <input
+                id="productRef"
+                placeholder="مثال: NC-001"
+            >
+
+            <label>عدد الأكواد</label>
+            <input
+                id="quantity"
+                type="number"
+                min="1"
+                max="1000"
+                value="1"
+            >
+
+            <button
+                class="primary"
+                onclick="generateCodes()"
+            >
+                🔐 توليد Unique QR Codes
+            </button>
+
+            <br><br>
+
+            <button
+                class="secondary"
+                style="width:100%"
+                onclick="clearAll()"
+            >
+                مسح جميع البيانات
+            </button>
+
+        </div>
+
+
+        <!-- CODES -->
+
+        <div class="card">
+
+            <h2>🔐 أكواد المنتجات</h2>
+
+            <div class="toolbar">
+
+                <input
+                    id="search"
+                    placeholder="ابحث عن Brand أو Product أو Code..."
+                    oninput="renderTable()"
+                >
+
+                <select
+                    id="statusFilter"
+                    onchange="renderTable()"
+                >
+                    <option value="all">كل الحالات</option>
+                    <option value="unused">غير مستعمل</option>
+                    <option value="used">مستعمل</option>
+                </select>
+
+            </div>
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>#</th>
+                            <th>Brand</th>
+                            <th>Product</th>
+                            <th>Unique Code</th>
+                            <th>Status</th>
+                            <th>تاريخ الإنشاء</th>
+                            <th>إجراءات</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="codesTable"></tbody>
+
+                </table>
+
+            </div>
+
+            <div
+                id="emptyState"
+                class="empty"
+                style="display:none"
+            >
+                لا توجد أكواد حتى الآن.
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- QR MODAL -->
+
+<div class="modal" id="qrModal">
+
+    <div class="modal-box">
+
+        <h2>QR Code</h2>
+
+        <div
+            id="qrContainer"
+        ></div>
+
+        <div
+            class="qr-info"
+            id="qrInfo"
+        ></div>
+
+        <button
+            class="gold-btn"
+            onclick="downloadQR()"
+            style="width:100%;margin-bottom:8px"
+        >
+            تحميل QR
+        </button>
+
+        <button
+            class="close"
+            onclick="closeModal()"
+        >
+            إغلاق
+        </button>
+
+    </div>
+
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+
+<script>
+
+/* =========================================
+   DATABASE
+========================================= */
+
+let codes = JSON.parse(
+    localStorage.getItem("brandSecurityCodes") || "[]"
+);
+
+let currentQR = null;
+
+
+/* =========================================
+   SAVE
+========================================= */
+
+function save(){
+
+    localStorage.setItem(
+        "brandSecurityCodes",
+        JSON.stringify(codes)
+    );
+
+}
+
+
+/* =========================================
+   RANDOM UNIQUE CODE
+========================================= */
+
+function generateUniqueCode(){
+
+    const characters =
+        "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+    let code = "";
+
+    do{
+
+        code = "";
+
+        for(let i = 0; i < 16; i++){
+
+            code += characters[
+                Math.floor(
+                    Math.random() * characters.length
+                )
+            ];
+
+        }
+
+    }while(
+        codes.some(item => item.code === code)
+    );
+
+    return code;
+
+}
+
+
+/* =========================================
+   GENERATE CODES
+========================================= */
+
+function generateCodes(){
+
+    const brand =
+        document.getElementById("brandName").value.trim();
+
+    const product =
+        document.getElementById("productName").value.trim();
+
+    const ref =
+        document.getElementById("productRef").value.trim();
+
+    const quantity =
+        parseInt(
+            document.getElementById("quantity").value
+        );
+
+
+    if(!brand){
+
+        showToast("أدخل اسم الـ Brand");
+
+        return;
+    }
+
+
+    if(!product){
+
+        showToast("أدخل اسم المنتج");
+
+        return;
+    }
+
+
+    if(!quantity || quantity < 1 || quantity > 1000){
+
+        showToast("عدد الأكواد يجب أن يكون بين 1 و1000");
+
+        return;
+    }
+
+
+    for(let i = 0; i < quantity; i++){
+
+        const uniqueCode =
+            generateUniqueCode();
+
+
+        const item = {
+
+            id:
+                crypto.randomUUID
+                ? crypto.randomUUID()
+                : Date.now() + "-" + Math.random(),
+
+            brand: brand,
+
+            product: product,
+
+            ref: ref,
+
+            code: uniqueCode,
+
+            status: "unused",
+
+            createdAt:
+                new Date().toISOString(),
+
+            scans: 0,
+
+            lastScan: null
+
+        };
+
+
+        codes.push(item);
+
+    }
+
+
+    save();
+
+    renderTable();
+
+    updateStats();
+
+
+    showToast(
+        `تم إنشاء ${quantity} كود بنجاح`
+    );
+
+}
+
+
+/* =========================================
+   RENDER
+========================================= */
+
+function renderTable(){
+
+    const tbody =
+        document.getElementById("codesTable");
+
+    const empty =
+        document.getElementById("emptyState");
+
+    const search =
+        document
+        .getElementById("search")
+        .value
+        .toLowerCase();
+
+    const filter =
+        document
+        .getElementById("statusFilter")
+        .value;
+
+
+    let filtered =
+        codes.filter(item => {
+
+            const matchesSearch =
+
+                item.brand.toLowerCase().includes(search)
+
+                ||
+
+                item.product.toLowerCase().includes(search)
+
+                ||
+
+                item.code.toLowerCase().includes(search)
+
+                ||
+
+                item.ref.toLowerCase().includes(search);
+
+
+            const matchesStatus =
+
+                filter === "all"
+
+                ||
+
+                item.status === filter;
+
+
+            return matchesSearch && matchesStatus;
+
+        });
+
+
+    tbody.innerHTML = "";
+
+
+    if(filtered.length === 0){
+
+        empty.style.display = "block";
+
+        return;
+
+    }
+
+
+    empty.style.display = "none";
+
+
+    filtered.forEach((item,index) => {
+
+        const tr =
+            document.createElement("tr");
+
+
+        const date =
+            new Date(item.createdAt)
+            .toLocaleString("fr-FR");
+
+
+        tr.innerHTML = `
+
+            <td>${index + 1}</td>
+
+            <td>
+                <strong>
+                    ${escapeHTML(item.brand)}
+                </strong>
+            </td>
+
+            <td>
+                ${escapeHTML(item.product)}
+                <br>
+                <small>
+                    ${escapeHTML(item.ref || "")}
+                </small>
+            </td>
+
+            <td>
+                <span class="code">
+                    ${item.code}
+                </span>
+            </td>
+
+            <td>
+
+                ${
+                    item.status === "unused"
+
+                    ?
+
+                    '<span class="badge badge-unused">غير مستعمل</span>'
+
+                    :
+
+                    '<span class="badge badge-used">مستعمل</span>'
+                }
+
+            </td>
+
+            <td>${date}</td>
+
+            <td>
+
+                <div class="actions">
+
+                    <button
+                        class="gold-btn"
+                        onclick="showQR('${item.id}')"
+                    >
+                        QR
+                    </button>
+
+                    <button
+                        class="secondary"
+                        onclick="copyCode('${item.code}')"
+                    >
+                        نسخ
+                    </button>
+
+                    <button
+                        class="danger"
+                        onclick="deleteCode('${item.id}')"
+                    >
+                        حذف
+                    </button>
+
+                </div>
+
+            </td>
+
+        `;
+
+
+        tbody.appendChild(tr);
+
+    });
+
+}
+
+
+/* =========================================
+   QR CODE
+========================================= */
+
+function showQR(id){
+
+    const item =
+        codes.find(x => x.id === id);
+
+
+    if(!item) return;
+
+
+    const container =
+        document.getElementById("qrContainer");
+
+
+    container.innerHTML = "";
+
+
+    /*
+       حالياً رابط تجريبي.
+
+       في المرحلة القادمة:
+       https://YOUR-DOMAIN.com/verify/CODE
+
+       وسيكون CODE مربوطاً بقاعدة البيانات.
+    */
+
+    const verificationURL =
+    window.location.origin
+    +
+    "/verify.html?code="
+    +
+    encodeURIComponent(item.code);
+    currentQR =
+        new QRCode(container, {
+
+            text: verificationURL,
+
+            width: 220,
+
+            height: 220,
+
+            correctLevel:
+                QRCode.CorrectLevel.H
+
+        });
+
+
+    document.getElementById("qrInfo").innerHTML = `
+
+        <strong>${escapeHTML(item.brand)}</strong>
+        <br>
+
+        ${escapeHTML(item.product)}
+
+        <br><br>
+
+        <span class="code">
+            ${item.code}
+        </span>
+
+        <br><br>
+
+        رابط التحقق:
+        <br>
+
+        <small style="direction:ltr;display:block">
+            ${verificationURL}
+        </small>
+
+    `;
+
+
+    document.getElementById("qrModal")
+        .style.display = "flex";
+
+}
+
+
+/* =========================================
+   DOWNLOAD QR
+========================================= */
+
+function downloadQR(){
+
+    const canvas =
+        document.querySelector(
+            "#qrContainer canvas"
+        );
+
+
+    if(!canvas){
+
+        showToast("QR غير موجود");
+
+        return;
+    }
+
+
+    const link =
+        document.createElement("a");
+
+
+    link.download =
+        "brand-qr.png";
+
+
+    link.href =
+        canvas.toDataURL("image/png");
+
+
+    link.click();
+
+}
+
+
+/* =========================================
+   CLOSE MODAL
+========================================= */
+
+function closeModal(){
+
+    document.getElementById("qrModal")
+        .style.display = "none";
+
+}
+
+
+/* =========================================
+   COPY CODE
+========================================= */
+
+function copyCode(code){
+
+    navigator.clipboard.writeText(code);
+
+    showToast("تم نسخ الكود");
+
+}
+
+
+/* =========================================
+   DELETE
+========================================= */
+
+function deleteCode(id){
+
+    const confirmDelete =
+        confirm(
+            "هل تريد حذف هذا الكود؟"
+        );
+
+
+    if(!confirmDelete) return;
+
+
+    codes =
+        codes.filter(
+            item => item.id !== id
+        );
+
+
+    save();
+
+    renderTable();
+
+    updateStats();
+
+    showToast("تم حذف الكود");
+
+}
+
+
+/* =========================================
+   STATISTICS
+========================================= */
+
+function updateStats(){
+
+    const total =
+        codes.length;
+
+
+    const unused =
+        codes.filter(
+            x => x.status === "unused"
+        ).length;
+
+
+    const used =
+        codes.filter(
+            x => x.status === "used"
+        ).length;
+
+
+    const rate =
+        total
+        ?
+        Math.round(
+            (used / total) * 100
+        )
+        :
+        0;
+
+
+    document.getElementById("totalCodes")
+        .textContent = total;
+
+
+    document.getElementById("unusedCodes")
+        .textContent = unused;
+
+
+    document.getElementById("usedCodes")
+        .textContent = used;
+
+
+    document.getElementById("usageRate")
+        .textContent = rate + "%";
+
+}
+
+
+/* =========================================
+   EXPORT CSV
+========================================= */
+
+function exportCSV(){
+
+    if(codes.length === 0){
+
+        showToast("لا توجد أكواد للتصدير");
+
+        return;
+    }
+
+
+    let csv =
+        "Brand,Product,Reference,Unique Code,Status,Created At,Scans\n";
+
+
+    codes.forEach(item => {
+
+        csv += [
+
+            `"${item.brand}"`,
+
+            `"${item.product}"`,
+
+            `"${item.ref || ""}"`,
+
+            `"${item.code}"`,
+
+            `"${item.status}"`,
+
+            `"${item.createdAt}"`,
+
+            `"${item.scans}"`
+
+        ].join(",") + "\n";
+
+    });
+
+
+    const blob =
+        new Blob(
+            [csv],
+            {
+                type:
+                    "text/csv;charset=utf-8;"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(blob);
+
+
+    const link =
+        document.createElement("a");
+
+
+    link.href = url;
+
+    link.download =
+        "brand-security-codes.csv";
+
+
+    link.click();
+
+
+    URL.revokeObjectURL(url);
+
+}
+
+
+/* =========================================
+   CLEAR ALL
+========================================= */
+
+function clearAll(){
+
+    if(codes.length === 0){
+
+        showToast("لا توجد بيانات");
+
+        return;
+
+    }
+
+
+    const confirmClear =
+        confirm(
+            "⚠️ سيتم حذف جميع الأكواد. هل أنت متأكد؟"
+        );
+
+
+    if(!confirmClear) return;
+
+
+    codes = [];
+
+    save();
+
+    renderTable();
+
+    updateStats();
+
+    showToast("تم حذف جميع البيانات");
+
+}
+
+
+/* =========================================
+   HTML SECURITY
+========================================= */
+
+function escapeHTML(value){
+
+    return String(value)
+
+        .replace(/&/g,"&amp;")
+
+        .replace(/</g,"&lt;")
+
+        .replace(/>/g,"&gt;")
+
+        .replace(/"/g,"&quot;")
+
+        .replace(/'/g,"&#039;");
+
+}
+
+
+/* =========================================
+   TOAST
+========================================= */
+
+function showToast(message){
+
+    const toast =
+        document.getElementById("toast");
+
+
+    toast.textContent =
+        message;
+
+
+    toast.style.display =
+        "block";
+
+
+    setTimeout(() => {
+
+        toast.style.display =
+            "none";
+
+    },2500);
+
+}
+
+
+/* =========================================
+   START
+========================================= */
+
+renderTable();
+
+updateStats();
+
+</script>
+
+</body>
+</html>
