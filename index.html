@@ -913,13 +913,9 @@ function showQR(id){
 
        وسيكون CODE مربوطاً بقاعدة البيانات.
     */
-
-    const verificationURL =
-    window.location.origin
-    +
-    "/verify.html?code="
-    +
-    encodeURIComponent(item.code);
+const verificationURL =
+    "https://otman44.github.io/brand-verification/verify.html?code="
+    + encodeURIComponent(item.code);
     currentQR =
         new QRCode(container, {
 
