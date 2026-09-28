@@ -7,119 +7,238 @@
     <title>Product Verification</title>
 
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-
         body {
-            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: #f4f6f8;
-            padding: 20px;
+            min-height: 100vh;
         }
 
         .card {
-            width: 100%;
-            max-width: 430px;
+            width: 90%;
+            max-width: 450px;
             background: white;
-            border-radius: 20px;
             padding: 35px 25px;
+            border-radius: 20px;
             text-align: center;
-            box-shadow: 0 10px 35px rgba(0,0,0,0.10);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.10);
         }
 
         .icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            border-radius: 50%;
-            background: #e8f8ee;
-            color: #16a34a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
+            font-size: 65px;
+            margin-bottom: 15px;
         }
 
         h1 {
-            font-size: 25px;
             margin-bottom: 10px;
-            color: #111827;
         }
 
-        p {
-            color: #6b7280;
-            margin-bottom: 25px;
+        .brand,
+        .product,
+        .code {
+            margin: 12px 0;
+            font-size: 17px;
         }
 
         .code {
-            background: #f3f4f6;
-            border-radius: 12px;
-            padding: 15px;
-            font-size: 18px;
-            font-weight: bold;
-            letter-spacing: 2px;
+            background: #f1f3f5;
+            padding: 12px;
+            border-radius: 10px;
             word-break: break-all;
-            color: #111827;
         }
 
-        .status {
-            margin-top: 20px;
-            padding: 14px;
-            border-radius: 12px;
-            background: #ecfdf5;
-            color: #15803d;
-            font-weight: bold;
+        .loading {
+            color: #555;
+        }
+
+        .authentic {
+            color: #16803c;
+        }
+
+        .invalid {
+            color: #c62828;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="card">
+<div class="card">
 
-        <div class="icon">✓</div>
+    <div id="icon" class="icon">🔎</div>
 
-        <h1>Product Verification</h1>
+    <h1 id="title">Checking...</h1>
 
-        <p>
-            This QR code has been successfully scanned.
-        </p>
-
-        <div class="code" id="code">
-            Loading...
-        </div>
-
-        <div class="status">
-            Verification code detected
-        </div>
-
+    <div id="message" class="loading">
+        Please wait while we verify this product.
     </div>
 
-    <script>
+    <div id="productInfo"></div>
 
-        const params = new URLSearchParams(window.location.search);
+</div>
 
-        const code = params.get("code");
 
-        const codeElement = document.getElementById("code");
+<script type="module">
 
-        if (code) {
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 
-            codeElement.textContent = code;
+    import {
+        getFirestore,
+        doc,
+        getDoc
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
-        } else {
 
-            codeElement.textContent = "No code found";
+    // Firebase configuration
+
+    const firebaseConfig = {
+
+        apiKey: "AIzaSyAdEFf_VVmmt3Aa8arRZjcgxDuAXpCacMk",
+
+        authDomain: "brand-verification-2ac04.firebaseapp.com",
+
+        projectId: "brand-verification-2ac04",
+
+        storageBucket: "brand-verification-2ac04.firebasestorage.app",
+
+        messagingSenderId: "256288166753",
+
+        appId: "1:256288166753:web:5f5a6211b2824708b2ab20"
+
+    };
+
+
+    // Initialize Firebase
+
+    const app = initializeApp(firebaseConfig);
+
+    const db = getFirestore(app);
+
+
+    // Get code from URL
+
+    const params = new URLSearchParams(window.location.search);
+
+    const code = params.get("code");
+
+
+    const icon = document.getElementById("icon");
+
+    const title = document.getElementById("title");
+
+    const message = document.getElementById("message");
+
+    const productInfo = document.getElementById("productInfo");
+
+
+    async function verifyProduct() {
+
+        if (!code) {
+
+            icon.textContent = "❌";
+
+            title.textContent = "Invalid Request";
+
+            title.className = "invalid";
+
+            message.textContent = "No verification code was provided.";
+
+            return;
 
         }
 
-    </script>
+
+        try {
+
+            const productRef = doc(db, "products", code);
+
+            const productSnap = await getDoc(productRef);
+
+
+            if (productSnap.exists()) {
+
+                const product = productSnap.data();
+
+
+                icon.textContent = "✅";
+
+                title.textContent = "Authentic Product";
+
+                title.className = "authentic";
+
+                message.textContent = "This product code is valid.";
+
+                productInfo.innerHTML = `
+
+                    <div class="brand">
+
+                        <strong>Brand:</strong> ${product.brand || "N/A"}
+
+                    </div>
+
+                    <div class="product">
+
+                        <strong>Product:</strong> ${product.productName || "N/A"}
+
+                    </div>
+
+                    <div class="code">
+
+                        <strong>Code:</strong><br>
+
+                        ${product.code || code}
+
+                    </div>
+
+                `;
+
+            } else {
+
+                icon.textContent = "❌";
+
+                title.textContent = "Invalid Product";
+
+                title.className = "invalid";
+
+                message.textContent = "This verification code was not found.";
+
+                productInfo.innerHTML = `
+
+                    <div class="code">
+
+                        <strong>Code:</strong><br>
+
+                        ${code}
+
+                    </div>
+
+                `;
+
+            }
+
+        } catch (error) {
+
+            console.error(error);
+
+            icon.textContent = "⚠️";
+
+            title.textContent = "Verification Error";
+
+            title.className = "invalid";
+
+            message.textContent = "Unable to verify the product at this time.";
+
+        }
+
+    }
+
+
+    verifyProduct();
+
+</script>
 
 </body>
 </html>
