@@ -1,12 +1,16 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Product Verification</title>
+    <title>LUNEVA - Product Verification</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -15,11 +19,12 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            padding: 20px;
         }
 
         .card {
-            width: 90%;
-            max-width: 450px;
+            width: 100%;
+            max-width: 500px;
             background: white;
             padding: 35px 25px;
             border-radius: 20px;
@@ -36,9 +41,7 @@
             margin-bottom: 10px;
         }
 
-        .brand,
-        .product,
-        .code {
+        .brand, .product, .code {
             margin: 12px 0;
             font-size: 17px;
         }
@@ -61,6 +64,17 @@
         .invalid {
             color: #c62828;
         }
+
+        .error-details {
+            margin-top: 15px;
+            padding: 12px;
+            background: #fff1f1;
+            color: #b71c1c;
+            border-radius: 8px;
+            font-size: 13px;
+            word-break: break-word;
+            text-align: left;
+        }
     </style>
 </head>
 
@@ -80,172 +94,194 @@
 
 </div>
 
-
 <script type="module">
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import {
+        initializeApp
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 
     import {
-    getFirestore,
-    doc,
-    getDoc,
-    collection,
-    addDoc,
-    serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+        getFirestore,
+        doc,
+        getDoc,
+        collection,
+        addDoc,
+        serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 
-    // Firebase configuration
+    // FIREBASE CONFIGURATION
 
     const firebaseConfig = {
-
         apiKey: "AIzaSyAdEFf_VVmmt3Aa8arRZjcgxDuAXpCacMk",
-
         authDomain: "brand-verification-2ac04.firebaseapp.com",
-
         projectId: "brand-verification-2ac04",
-
         storageBucket: "brand-verification-2ac04.firebasestorage.app",
-
         messagingSenderId: "256288166753",
-
         appId: "1:256288166753:web:5f5a6211b2824708b2ab20"
-
     };
 
 
-    // Initialize Firebase
+    // INITIALIZE FIREBASE
 
     const app = initializeApp(firebaseConfig);
-
     const db = getFirestore(app);
 
 
-    // Get code from URL
+    // GET PRODUCT CODE FROM URL
 
     const params = new URLSearchParams(window.location.search);
-
     const code = params.get("code");
 
-
     const icon = document.getElementById("icon");
-
     const title = document.getElementById("title");
-
     const message = document.getElementById("message");
-
     const productInfo = document.getElementById("productInfo");
 
+
+    // DISPLAY PRODUCT INFORMATION SAFELY
+
+    function showProductInfo(product, verificationCode) {
+
+        productInfo.replaceChildren();
+
+        const brand = document.createElement("div");
+        brand.className = "brand";
+        brand.innerHTML = "<strong>Brand:</strong> ";
+        brand.append(
+            document.createTextNode(product.brand || "N/A")
+        );
+
+        const name = document.createElement("div");
+        name.className = "product";
+        name.innerHTML = "<strong>Product:</strong> ";
+        name.append(
+            document.createTextNode(product.productName || "N/A")
+        );
+
+        const codeElement = document.createElement("div");
+        codeElement.className = "code";
+
+        const label = document.createElement("strong");
+        label.textContent = "Code:";
+
+        codeElement.append(
+            label,
+            document.createElement("br"),
+            document.createTextNode(product.code || verificationCode)
+        );
+
+        productInfo.append(brand, name, codeElement);
+    }
+
+
+    // LOG SCAN IN FIRESTORE
+
+    async function logScan(verificationCode, status) {
+
+        try {
+
+            await addDoc(collection(db, "scans"), {
+                code: verificationCode,
+                status: status,
+                timestamp: serverTimestamp()
+            });
+
+            console.log("Scan recorded successfully.");
+
+        } catch (error) {
+
+            console.error("Scan logging error:", error);
+
+        }
+    }
+
+
+    // VERIFY PRODUCT
 
     async function verifyProduct() {
 
         if (!code) {
 
             icon.textContent = "❌";
-
             title.textContent = "Invalid Request";
-
             title.className = "invalid";
 
-            message.textContent = "No verification code was provided.";
+            message.textContent =
+                "No verification code was provided.";
 
             return;
-
         }
 
-
         try {
+
+            console.log("Checking product:", code);
 
             const productRef = doc(db, "products", code);
 
             const productSnap = await getDoc(productRef);
-            try {
-    await addDoc(collection(db, "scans"), {
-        code: code,
-        timestamp: serverTimestamp()
-    });
-} catch (scanError) {
-    console.error("Scan logging error:", scanError);
-}
 
 
             if (productSnap.exists()) {
 
                 const product = productSnap.data();
 
-
                 icon.textContent = "✅";
-
                 title.textContent = "Authentic Product";
-
                 title.className = "authentic";
 
-                message.textContent = "This product code is valid.";
+                message.textContent =
+                    "This product code is valid.";
 
-                productInfo.innerHTML = `
+                showProductInfo(product, code);
 
-                    <div class="brand">
-
-                        <strong>Brand:</strong> ${product.brand || "N/A"}
-
-                    </div>
-
-                    <div class="product">
-
-                        <strong>Product:</strong> ${product.productName || "N/A"}
-
-                    </div>
-
-                    <div class="code">
-
-                        <strong>Code:</strong><br>
-
-                        ${product.code || code}
-
-                    </div>
-
-                `;
+                await logScan(code, "valid");
 
             } else {
 
                 icon.textContent = "❌";
-
                 title.textContent = "Invalid Product";
-
                 title.className = "invalid";
 
-                message.textContent = "This verification code was not found.";
+                message.textContent =
+                    "This verification code was not found.";
 
-                productInfo.innerHTML = `
+                productInfo.textContent =
+                    "Code: " + code;
 
-                    <div class="code">
-
-                        <strong>Code:</strong><br>
-
-                        ${code}
-
-                    </div>
-
-                `;
+                await logScan(code, "invalid");
 
             }
 
         } catch (error) {
 
-            console.error(error);
+            console.error("Verification error:", error);
 
             icon.textContent = "⚠️";
-
             title.textContent = "Verification Error";
-
             title.className = "invalid";
 
-            message.textContent = "Unable to verify the product at this time.";
+            message.textContent =
+                "Unable to verify the product.";
+
+            const details = document.createElement("div");
+
+            details.className = "error-details";
+
+            details.textContent =
+                "Error: " +
+                (error.code || "unknown") +
+                " - " +
+                (error.message || "Unknown error");
+
+            productInfo.replaceChildren(details);
 
         }
 
     }
 
+
+    // START VERIFICATION
 
     verifyProduct();
 
