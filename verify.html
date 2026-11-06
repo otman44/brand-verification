@@ -159,6 +159,14 @@
             const productRef = doc(db, "products", code);
 
             const productSnap = await getDoc(productRef);
+            try {
+    await addDoc(collection(db, "scans"), {
+        code: code,
+        timestamp: serverTimestamp()
+    });
+} catch (scanError) {
+    console.error("Scan logging error:", scanError);
+}
 
 
             if (productSnap.exists()) {
